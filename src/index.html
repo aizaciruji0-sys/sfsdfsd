@@ -10,7 +10,7 @@
    1. STREAM READER & BROADCAST PIPELINE
    ============================================================ */
 const W=window,L=localStorage;
-let db=null,syncing=false;
+let db=null,syncing=false,syncDebounce=null;
 
 const ch=(typeof BroadcastChannel!=='undefined')?new BroadcastChannel('sync'):{postMessage:()=>{},onmessage:null};
 ch.onmessage=e=>{
@@ -60,7 +60,10 @@ function save(row,targetTable=K.cur,actionType=2){
   };
   idbPut(item,'mut');
   ch.postMessage('kick');
-  if(!syncing)syn();
+  if(!syncing){
+    clearTimeout(syncDebounce);
+    syncDebounce=setTimeout(syn,40);
+  }
 }
 
 function initDB(tables=[],onReady){
